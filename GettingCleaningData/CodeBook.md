@@ -1,4 +1,4 @@
-# Getting and Cleaning Data-
+# Getting and Cleaning Data
 
 ## Course Project
 
@@ -16,20 +16,20 @@ https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Datas
 
 We first downloaded the dataset and unzipped the different files. Then, we loaded the different files into R variables.
 
-The first step identifies the names of the features so we can assign them to the columns. We use the grepl function to identify the columns providing information around mean or standard deviation. Once we have those columns identified, we add two columns for each train and test datasets: the type of activity and the subject id. 
+The first step identifies the names of the features so we can assign them to the columns. We use the "grepl" function to identify the columns providing information around mean or standard deviation. Once we have those columns identified, we add two columns for each train and test datasets: the type of activity and the subject id. 
 
-Once we have the two datasets ready, we will bind them using rbind and set the names for all the columns. We use aggregate on this dataset to compute means and group by Activity and Subject. 
+Once we have the two datasets ready, we will bind them using "rbind" and set the names for all the columns. We use "aggregate" on this dataset to compute means and group by Activity and Subject. 
 
-The last steps are assigning the labels to the activity types, setting more descriptive names to the different columns and finally saving the tidy dataset to a txt file.
+The latest steps are assigning the labels to the activity types, setting more descriptive names to the different columns and finally saving the tidy dataset to a txt file.
 
 # Variables in the tidyDataSet.txt file
 
-The resulting tidy dataset is written to a file called "tidyDataSet.txt", which may be easily loaded again into R with the line:
+The resulting tidy dataset is written to a file called "tidyDataSet.txt", which may be easily loaded again into R with the code:
 ```R
 tidyDataSet <- read.table("tidyDataSet.txt",header=TRUE)
 ```
 
-The names of the columns can be found in the following list. The column names are self-describing and except Activity and Subject, the values correspond to the mean of the measures obtained per Activity and Subject. For detailed information on each of the measures, please review the article information (see link above in this same page).
+The names of the columns can be found in the following list. The column names are self-describing. The values (except Activity and Subject) correspond to the mean of the measures obtained per Activity and Subject. For detailed information on each of the measures, please review the article information (see link above in this same page).
 
 "Activity"
 "Subject"
