@@ -106,10 +106,11 @@ The names of the columns can be found in the following list. The column names ar
 [73] "Freq Domain Signals forBody Accelerator Jerk Magnitude-mean()"    
 [74] "Freq Domain Signals forBody Accelerator Jerk Magnitude-std()"     
 [75] "Freq Domain Signals forBody Accelerator Jerk Magnitude-meanFreq()"
+
 [76] "Freq Domain Signals forBody Gyroscope Magnitude-mean()"           
 [77] "Freq Domain Signals forBody Gyroscope Magnitude-std()"            
 [78] "Freq Domain Signals forBody Gyroscope Magnitude-meanFreq()"       
 [79] "Freq Domain Signals forBody Gyroscope Jerk Magnitude-mean()"      
 [80] "Freq Domain Signals forBody Gyroscope Jerk Magnitude-std()"       
-[81] "Freq Domain Signals forBody Gyroscope Jerk Magnitude-meanFreq()" 
+[81] "Freq Domain Signals forBody Gyroscope Jerk Magnitude-meanFreq()"  
 
