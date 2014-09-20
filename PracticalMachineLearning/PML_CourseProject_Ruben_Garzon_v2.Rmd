@@ -1,0 +1,109 @@
+---
+title: "Practical Machine Learning"
+author: "Ruben Garzon"
+date: "Sep 2014"
+output: html_document
+---
+
+###Course Project Write up
+
+We will first download both training and test sets and remove some columns that according to the project do not offer real information to predict the outcome classe. We will also use the caret package to divide the training set into training and test sets with a p=0.75 (75% training, 25% test).  
+One of the things we have considered when selecting the relevant predictors is what predictors contain valid data in the test dataset provided in the assignment. It is not useful to fit using predictors that have no valid data in the test dataset provided because our target is predicting the outcome for those 20 specific test cases with maximum accuracy.
+```{r}
+library(caret)
+library(MASS)
+library(class)
+trainSet <- read.csv("pml-training.csv")
+testSet <- read.csv("pml-testing.csv")
+bad_idxs<- grep("*timestamp*",names(trainSet))
+bad_idxs<- c(bad_idxs,match(c("user_name","new_window","num_window","X"),names(trainSet)))
+#We select columns based on the data available in the Test Set
+goodCols<- apply(testSet,2, function(x) !any(is.na(x)) )
+allSet<-trainSet[,goodCols]
+allSet<-allSet[,-bad_idxs]
+complete<-na.omit(allSet)
+inTrain<-createDataPartition(complete$classe,p=0.75,list=FALSE)
+train<-complete[inTrain,]
+test<-complete[-inTrain,]
+```
+In addition, we will prepare the assignment test data set (the one that we need to predict to submit in the assignment) to be evaluated with the different models and also the function to write one file per each one of the 20 predictions.
+```{r}
+testSet2<-testSet[,goodCols]
+testSet2<-testSet2[,-bad_idxs]
+
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+```
+
+
+We cannot use logistic regression with the current data as the response variable is multi-class.  
+We will start with a **LDA** model. In this case, we use the CV=TRUE parameter to run LOOCV. We can then run lda with CV=FALSE and obtain the predictions to evaluate the test error. We obtain an Accuracy level of 0.70, which is an estimate of the out of sample Accuracy that we could obtain with this lda fit. We will finally compare the results in the class dataSet with the ones obtained by lda. We can see that this model is making some wrong predictions.
+```{r}
+lda.fit.CV <- lda(classe ~ ., data=train,CV=TRUE)
+confusionMatrix(lda.fit.CV$class,train$classe)$overall
+
+lda.fit <- lda(classe ~ ., data=train,CV=FALSE)
+lda.predict <- predict( lda.fit, newdata=test,type='response')
+lda.assignment <- predict(lda.fit,newdata=testSet2,type='response')
+#this is the prediction of lda for the class exercise dataset
+lda.assignment$class
+#this is the correct prediction for the class exercise dataset
+#B A B A A E D B A A B C B A E E A B B B
+
+```
+
+We perform the same process with a **QDA** model and obtain an Accuracy of 0.89 which is slightly better than the one before. The estimated accuracy is obtained through LOOCV. We can see that the model is also making some wrong predictions.
+
+```{r}
+qda.fit.CV <- qda( classe ~ ., data=train,CV=TRUE )
+confusionMatrix(qda.fit.CV$class,train$classe)$overall
+qda.fit <- qda( classe ~ ., data=train )
+qda.predict <- predict( qda.fit, newdata=test,type='response')
+confusionMatrix(qda.predict$class,test$classe)$overall
+qda.assignment <- predict(qda.fit,newdata=testSet2,type='response')
+qda.assignment$class
+#this is the correct prediction for the class exercise dataset
+#B A B A A E D B A A B C B A E E A B B B
+```
+Finally we will fit a **Random Forest** model using the caret package. We are telling the caret package to use a **5-Fold Cross-Validation** and repeat the process 10 times to compute te estimated out of sample accuracy. After a while, we obtain very good **Accuracy level above the 99%**
+```{r,warning=FALSE}
+ctrl <- trainControl(method="repeatedcv",repeats=10,number=5)
+load("rf_fit.rda")
+#Uncomment the following lines when running the code, Random Forest will take long to fit the model
+#rf_fit <- train(classe~.,data=train,trControl=ctrl,method="rf",proximity=FALSE)
+#save(rf_fit, file = "rf_fit.rda")
+pred_rf <- predict(rf_fit,test)
+confusionMatrix(pred_rf,test$classe)$overall
+answers <- predict(rf_fit,testSet2)
+#This is the prediction obtain from the Random Forest
+answers
+#This is the correct prediction for the class exercise dataset
+#B A B A A E D B A A B C B A E E A B B B
+```
+We will finally call the function to write the answers to files and submit the correct solutions found using random forest.
+
+```{r}
+pml_write_files(answers)
+```
+
+To conclude, we will compare the obtained Accuracy levels with the 3 methods.
+```{r,echo=FALSE}
+Models <- c("LDA","QDA","Random Forest")
+Accuracy <- c(
+        100*confusionMatrix(lda.fit.CV$class,train$classe)$overall["Accuracy"],
+        100*confusionMatrix(qda.fit.CV$class,train$classe)$overall["Accuracy"],
+        100*confusionMatrix(pred_rf,test$classe)$overall["Accuracy"]
+)
+names(Accuracy)<-Models
+bp<-barplot(Accuracy, main = "% Accuracy by Model", xlab = "Model fit", ylab = "Accuracy", 
+ names.arg = Models)
+ text(bp, 0, round(Accuracy,2),cex=1,pos=3) 
+
+```
+
